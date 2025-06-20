@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: REMPLACER_PAR_L_URL_DE_VOTRE_DEPOT_GIT # ex: https://github.com/votre-user/mon-infra-aws.git
+    targetRevision: HEAD
+    path: kubernetes/1-core-services
+    directory:
+      recurse: true
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default # Le namespace de l'application ArgoCD n'impacte pas le namespace des sous-apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

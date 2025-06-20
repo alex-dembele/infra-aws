@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: karpenter
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: karpenter
+    repoURL: oci://public.ecr.aws/karpenter
+    targetRevision: v0.36.1 # Vérifier la dernière version
+    helm:
+      releaseName: karpenter
+      parameters:
+      - name: serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+        value: REMPLACER_PAR_OUTPUT_KARPENTER_ROLE_ARN
+      - name: settings.aws.clusterName
+        value: REMPLACER_PAR_NOM_DU_CLUSTER
+      - name: settings.aws.defaultInstanceProfile
+        value: REMPLACER_PAR_OUTPUT_KARPENTER_INSTANCE_PROFILE
+      # - name: controller.resources.requests.cpu
+      #   value: 1
+      # - name: controller.resources.requests.memory
+      #   value: 1Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: karpenter
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://kubernetes-sigs.github.io/external-dns/'
+    targetRevision: 1.14.1 # Vérifier la dernière version
+    chart: external-dns
+    helm:
+      releaseName: external-dns
+      parameters:
+        - name: serviceAccount.create
+          value: 'true'
+        - name: serviceAccount.name
+          value: external-dns
+        - name: serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+          value: REMPLACER_PAR_OUTPUT_EXTERNALDNS_ROLE_ARN
+        - name: provider
+          value: aws
+        - name: policy
+          value: sync # ou upsert-only
+        - name: txtOwnerId
+          value: mon-cluster-eks
+        - name: domainFilters[0]
+          value: REMPLACER_PAR_VOTRE_DOMAINE_COM
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: external-dns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
